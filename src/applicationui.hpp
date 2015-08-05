@@ -42,7 +42,8 @@ public:
     ApplicationUI();
     virtual ~ApplicationUI() {}
     void initOAuth();
-    Q_INVOKABLE OAuth * oauth;
+
+    static OAuth * oauth;
 private slots:
     void onSystemLanguageChanged();
 private:

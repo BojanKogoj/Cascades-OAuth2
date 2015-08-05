@@ -23,6 +23,8 @@
 
 using namespace bb::cascades;
 
+OAuth* ApplicationUI::oauth;
+
 ApplicationUI::ApplicationUI() :
         QObject()
 {
@@ -45,10 +47,9 @@ ApplicationUI::ApplicationUI() :
     // Create scene document from main.qml asset, the parent is set
     // to ensure the document gets destroyed properly at shut down.
     QmlDocument *qml = QmlDocument::create("asset:///main.qml").parent(this);
-    qml->setContextProperty("oauth", oauth);
+    qml->setContextProperty("oauth", ApplicationUI::oauth);
     // Create root object for the UI
     AbstractPane *root = qml->createRootObject<AbstractPane>();
-
     // Set created root object as the application scene
     Application::instance()->setScene(root);
 }
