@@ -27,8 +27,12 @@ void OAuth::link()
 {
     QList<QPair<QString, QString> > parameters;
     parameters.append(qMakePair(QString(OAUTH_CLIENT_ID), m_client_id));
-    parameters.append(qMakePair(QString(OAUTH_RESPONSE_TYPE), QString(m_response_type)));
+    parameters.append(qMakePair(QString(OAUTH_RESPONSE_TYPE), responseType()));
     parameters.append(qMakePair(QString(OAUTH_STATE), QString(m_state)));
+
+    if (!redirectURI().isEmpty())
+        parameters.append(qMakePair(QString(OAUTH_REDIRECT_URI), QString(m_redirect_uri)));
+
     QUrl url(m_authorize_url);
     url.setQueryItems(parameters);
     qDebug() << "[OAuth.link] Url: " << url;
@@ -40,18 +44,18 @@ void OAuth::authorizationReceived(QString url)
 {
     //http://127.0.0.1?state=sxQ4qR0zgE3A98l#access_token=5f0664bf6aa974c62dacd179262eb8eaxxxxxx&expires_in=3600&token_type=bearer&refresh_token=f1ae5cc3f2f231a29db009a54c5c5bb3ebxxxxx&account_username=xxxxx
     // This is to avoid URL issue: ?state=mystate#access_token=
-    url.replace("#", "&");
 
-    QUrl mUrl(url);
+    QUrl tmp(url);
+    QUrl mUrl("?" + tmp.fragment()); // all info is in fragment, we have to transform it
 
-    // if you sent State, expect it!
-    if (! m_state.isEmpty())
+            // if you sent State, expect it!
+    if (!m_state.isEmpty())
         if (mUrl.queryItemValue(OAUTH_STATE) != m_state) {
             qDebug() << "[OAuth.onAuthorizationReceived] State did not match! Received: " << mUrl.queryItemValue(OAUTH_STATE);
             // TODO emit signal with error!
             return;
         }
-
+    qDebug() << mUrl;
     if (mUrl.queryItemValue(OAUTH_ACCESS_TOKEN).size() == 0) {
         return;
     }
@@ -65,14 +69,12 @@ void OAuth::authorizationReceived(QString url)
         return;
     }
 
-
     setAccessToken(mUrl.queryItemValue(OAUTH_ACCESS_TOKEN));
     setExpiresIn(mUrl.queryItemValue(OAUTH_EXPIRES_IN).toInt());
     setTokenType(mUrl.queryItemValue(OAUTH_TOKEN_TYPE));
     setRefreshToken(mUrl.queryItemValue(OAUTH_REFRESH_TOKEN));
     settingsSaveAccessToken(accessToken());
     settingsSaveRefreshToken(refreshToken());
-
 
     // Not considered important?
     if (mUrl.queryItemValue(OAUTH_ACCOUNT_USERNAME).size() > 0) {
@@ -173,13 +175,11 @@ bool OAuth::verifyLogin()
     return isLinked();
 }
 
-
-
 void OAuth::setExpiresIn(const int &value)
 {
     m_expires_in = value;
     setExpireDateTime(QDateTime::currentMSecsSinceEpoch() / 1000 + value);
-    }
+}
 
 void OAuth::unlink()
 {
@@ -233,6 +233,16 @@ void OAuth::setClientId(const QString &value)
 QString OAuth::clientId()
 {
     return m_client_id;
+}
+
+void OAuth::setRedirectURI(const QString &value)
+{
+    m_redirect_uri = value;
+}
+
+QString OAuth::redirectURI()
+{
+    return m_redirect_uri;
 }
 
 void OAuth::setClientSecret(const QString &value)
@@ -367,4 +377,17 @@ void OAuth::saveValueFor(const QString &objectName, const QString &inputValue)
     // A new value is saved to the application settings object.
     QSettings settings;
     settings.setValue(objectName, QVariant(inputValue));
+}
+
+void OAuth::setResponseType(const ResponseType& value)
+{
+    m_response_type = value;
+}
+
+QString OAuth::responseType()
+{
+    if (m_response_type == CODE)
+        return "code";
+    else
+        return "token";
 }

@@ -48,6 +48,7 @@ config_pri_source_group1 {
 
     HEADERS += \
         $$quote($$BASEDIR/src/OAuth/OAuth.h) \
+        $$quote($$BASEDIR/src/OAuth/ResponseType.h) \
         $$quote($$BASEDIR/src/applicationui.hpp)
 }
 

@@ -11,6 +11,7 @@
 #include <QNetworkReply>
 #include <QUrl>
 #include <QDebug>
+#include "ResponseType.h"
 
 class OAuth: public QObject
 {
@@ -19,14 +20,15 @@ class OAuth: public QObject
     Q_PROPERTY(bool isLinked READ isLinked WRITE onSetIsLinked NOTIFY isLinkedChanged)
     Q_PROPERTY(QString accountUsername READ accountUsername WRITE setAccountUsername NOTIFY accountUsernameChanged)
 public:
-    OAuth();Q_INVOKABLE
-    void link();Q_INVOKABLE
-    void unlink();Q_INVOKABLE
-    bool isValidToken();
-    bool verifyLogin();Q_INVOKABLE
-    void authorizationReceived(QString url);Q_INVOKABLE
-    QString accessToken();Q_INVOKABLE
-    void getNewAccessToken();signals:
+    OAuth();
+    Q_INVOKABLE void link();
+    Q_INVOKABLE void unlink();
+    Q_INVOKABLE bool isValidToken();
+    bool verifyLogin();
+    Q_INVOKABLE void authorizationReceived(QString url);
+    Q_INVOKABLE QString accessToken();
+    Q_INVOKABLE void getNewAccessToken();
+    signals:
     void openBrowser(QUrl url);
     void closeBrowser();
     void accessTokenRefreshed();
@@ -39,6 +41,8 @@ private slots:
 public:
     QString clientId();
     void setClientId(const QString &value);
+    QString redirectURI();
+    void setRedirectURI(const QString &value);
     QString clientSecret();
     void setClientSecret(const QString &value);
     QString authorizeUrl();
@@ -57,7 +61,8 @@ public:
     void setExpiresIn(const int& value);
     uint expireDateTime();
     void setExpireDateTime(const uint& value);
-
+    void setResponseType(const ResponseType& value);
+    QString responseType();
     bool isLinked();
     bool isRunning();
     void onSetIsLinked(bool value)
@@ -97,13 +102,18 @@ private:
     QString m_token_type;
     QString m_refresh_token;
     QString m_account_username;
+    QString m_redirect_uri;
+    ResponseType m_response_type;
     int m_expires_in;
     uint m_expire_datetime;
     bool m_running;
 
+public:
+
+
 };
 
-const char m_response_type[] = "token";
+
 const char OAUTH_SETTINGS_PREFIX[] = "oauth_";
 const char OAUTH_CLIENT_ID[] = "client_id";
 const char OAUTH_CLIENT_SECRET[] = "client_secret";
@@ -116,5 +126,6 @@ const char OAUTH_TOKEN_TYPE[] = "token_type";
 const char OAUTH_REFRESH_TOKEN[] = "refresh_token";
 const char OAUTH_ACCOUNT_USERNAME[] = "account_username";
 const char OAUTH_GRANT_TYPE[] = "grant_type";
+const char OAUTH_REDIRECT_URI[] = "redirect_uri";
 
 #endif /* OAUTH_H_ */

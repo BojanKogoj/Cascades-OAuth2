@@ -54,7 +54,23 @@ ApplicationUI::ApplicationUI() :
     Application::instance()->setScene(root);
 }
 
+// WORDPRESS
 void ApplicationUI::initOAuth()
+{
+    // OAuth
+    oauth = new OAuth();
+    // API info
+    oauth->setAuthorizeUrl("https://public-api.wordpress.com/oauth2/authorize");
+    oauth->setRefreshUrl("https://public-api.wordpress.com/oauth2/token");
+    // Client info
+    oauth->setClientId("41987");
+    oauth->setClientSecret("oBdJrdp1YBhBHrrA93jkToxVPZ0jFV5MihIUF7SK4yTCqL5flZnX8EnAhWtnYHqQ");
+    oauth->setRedirectURI("http://darkenergy.si");
+    oauth->setResponseType(ResponseType::CODE);
+}
+
+// IMGUR
+/*void ApplicationUI::initOAuth()
 {
     // OAuth
     oauth = new OAuth();
@@ -65,7 +81,7 @@ void ApplicationUI::initOAuth()
     oauth->setClientId("bfb7676d58afd92");
     oauth->setClientSecret("92991f3a71908986985a91acd64b1d05b33969dd");
     oauth->setState("cu7l2w3Y2lxkPIU");
-}
+}*/
 
 void ApplicationUI::onSystemLanguageChanged()
 {
