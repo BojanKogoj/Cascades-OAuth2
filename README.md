@@ -1,16 +1,17 @@
 *THIS IS WORK IN PROGRESS!*
 
 # About
-This is an example of OAuth2 implementation, working with Imgur.com API. Some features might be missing.
+This is an example of OAuth2 implementation. Not all features are implemented
 
 # Supporeted APIs
-Right now only Imgur is supported (and example). It shouldn't be too hard to modify for other APIs
+Imgur.com and WordPress.com
 
 # Saved information
 
 Once you link, the following information will be saved to QSettings
 - access token (used to access API)
 - refresh token (used to get new access token)
+- code (if you use response_type CODE)
 - account username (for displaying inside application)
 - expiration datetime (when token becomes invalid)
 
@@ -26,36 +27,23 @@ QT += network
 LIBS += -lbbdata
 ```
 
-In `applicationui.h` add 
+In `applicationui.cpp` add 
 ```
-#include "OAuth/OAuth.h"
+#include "OAuth/WordPress.h" // or #include "OAuth/Imgur.h"
 ```
-And
+Add the following to expose it to QML:
 ```
-public:
-    static OAuth * oauth;
-```
-In ApplicationUI, before `ApplicationUI::ApplicationUI(): QObject()` add
-```
-OAuth* ApplicationUI::oauth;
+qml->setContextProperty("oauth", OAuthx::Instance());
 ```
 
-This example is for Imgur API
-```
-// OAuth
-oauth = new OAuth();
-// API info
-oauth->setAuthorizeUrl("https://api.imgur.com/oauth2/authorize");
-oauth->setRefreshUrl("https://api.imgur.com/oauth2/token");
-// Client info
-oauth->setClientId("bfb7676d58afxxx");
-oauth->setClientSecret("92991f3a71908986985a91acd64b1d05b3396xxx");
-oauth->setState("cu7l2w3Y2lxkPIU"); 
-```
-At this point OAuth should be ready to use
+Go to Imgur.cpp or WordPress.cpp and add information required.
+
+At this point OAuth should be ready to use. 
+
+*You do not need to initialize it. Only one OAuth instance should exist at any point.*
 
 # Work flow
-The same instance of OAuth is being used in multiple classes, so oauth is static. Access it using `ApplicationUI::oauth;`
+The same instance of OAuth is being used in multiple classes. Access it using `OAuthx::Instance();`
 This project contains a partial example.
 
 To use:
