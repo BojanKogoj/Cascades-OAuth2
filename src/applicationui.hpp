@@ -18,7 +18,6 @@
 #define ApplicationUI_HPP_
 
 #include <QObject>
-#include "OAuth/OAuth.h"
 
 namespace bb
 {
@@ -41,9 +40,7 @@ class ApplicationUI : public QObject
 public:
     ApplicationUI();
     virtual ~ApplicationUI() {}
-    void initOAuth();
 
-    static OAuth * oauth;
 private slots:
     void onSystemLanguageChanged();
 private:

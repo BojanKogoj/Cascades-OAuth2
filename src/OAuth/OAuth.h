@@ -13,6 +13,7 @@
 #include <QDebug>
 #include "ResponseType.h"
 
+
 class OAuth: public QObject
 {
     Q_OBJECT
@@ -63,6 +64,9 @@ public:
     void setExpireDateTime(const uint& value);
     void setResponseType(const ResponseType& value);
     QString responseType();
+    void setCode(const QString & value);
+    QString code();
+    void setIsLinked(const bool& linked);
     bool isLinked();
     bool isRunning();
     void onSetIsLinked(bool value)
@@ -81,6 +85,7 @@ protected:
     QString m_authorize_url;
     QString m_refresh_url;
     QString m_state;
+    QString m_code;
     bool m_isLinked;
 
 private:
@@ -88,13 +93,17 @@ private:
     void saveValueFor(const QString &objectName, const QString &inputValue);
     void settingsSaveAccessToken(QString value);
     void settingsSaveRefreshToken(QString value);
+    void settingsSaveCode(QString value);
     void settingsSaveUsername(QString value);
     void settingsSaveExpiresDateTime(uint value);
     uint settingsLoadExpiresDateTime();
     QString settingsLoadRefreshToken();
     QString settingsLoadAccessToken();
     QString settingsLoadUsername();
+    QString settingsLoadCode();
     void loadFromSettings();
+    void authorizationReceivedToken(QString url);
+    void authorizationReceivedCode(QString url);
 
 private:
     QNetworkAccessManager * netManager;
@@ -108,10 +117,9 @@ private:
     uint m_expire_datetime;
     bool m_running;
 
-public:
-
 
 };
+
 
 
 const char OAUTH_SETTINGS_PREFIX[] = "oauth_";
@@ -126,6 +134,8 @@ const char OAUTH_TOKEN_TYPE[] = "token_type";
 const char OAUTH_REFRESH_TOKEN[] = "refresh_token";
 const char OAUTH_ACCOUNT_USERNAME[] = "account_username";
 const char OAUTH_GRANT_TYPE[] = "grant_type";
+const char OAUTH_AUTHORIZATION_CODE[] = "authorization_code";
 const char OAUTH_REDIRECT_URI[] = "redirect_uri";
+const char OAUTH_CODE[] = "code";
 
 #endif /* OAUTH_H_ */

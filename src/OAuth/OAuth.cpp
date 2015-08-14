@@ -28,7 +28,9 @@ void OAuth::link()
     QList<QPair<QString, QString> > parameters;
     parameters.append(qMakePair(QString(OAUTH_CLIENT_ID), m_client_id));
     parameters.append(qMakePair(QString(OAUTH_RESPONSE_TYPE), responseType()));
-    parameters.append(qMakePair(QString(OAUTH_STATE), QString(m_state)));
+
+    if (!m_state.isEmpty())
+        parameters.append(qMakePair(QString(OAUTH_STATE), QString(m_state)));
 
     if (!redirectURI().isEmpty())
         parameters.append(qMakePair(QString(OAUTH_REDIRECT_URI), QString(m_redirect_uri)));
@@ -42,49 +44,10 @@ void OAuth::link()
 
 void OAuth::authorizationReceived(QString url)
 {
-    //http://127.0.0.1?state=sxQ4qR0zgE3A98l#access_token=5f0664bf6aa974c62dacd179262eb8eaxxxxxx&expires_in=3600&token_type=bearer&refresh_token=f1ae5cc3f2f231a29db009a54c5c5bb3ebxxxxx&account_username=xxxxx
-    // This is to avoid URL issue: ?state=mystate#access_token=
-
-    QUrl tmp(url);
-    QUrl mUrl("?" + tmp.fragment()); // all info is in fragment, we have to transform it
-
-            // if you sent State, expect it!
-    if (!m_state.isEmpty())
-        if (mUrl.queryItemValue(OAUTH_STATE) != m_state) {
-            qDebug() << "[OAuth.onAuthorizationReceived] State did not match! Received: " << mUrl.queryItemValue(OAUTH_STATE);
-            // TODO emit signal with error!
-            return;
-        }
-    qDebug() << mUrl;
-    if (mUrl.queryItemValue(OAUTH_ACCESS_TOKEN).size() == 0) {
-        return;
-    }
-    if (mUrl.queryItemValue(OAUTH_EXPIRES_IN).size() == 0) {
-        return;
-    }
-    if (mUrl.queryItemValue(OAUTH_TOKEN_TYPE).size() == 0) {
-        return;
-    }
-    if (mUrl.queryItemValue(OAUTH_REFRESH_TOKEN).size() == 0) {
-        return;
-    }
-
-    setAccessToken(mUrl.queryItemValue(OAUTH_ACCESS_TOKEN));
-    setExpiresIn(mUrl.queryItemValue(OAUTH_EXPIRES_IN).toInt());
-    setTokenType(mUrl.queryItemValue(OAUTH_TOKEN_TYPE));
-    setRefreshToken(mUrl.queryItemValue(OAUTH_REFRESH_TOKEN));
-    settingsSaveAccessToken(accessToken());
-    settingsSaveRefreshToken(refreshToken());
-
-    // Not considered important?
-    if (mUrl.queryItemValue(OAUTH_ACCOUNT_USERNAME).size() > 0) {
-        setAccountUsername(mUrl.queryItemValue(OAUTH_ACCOUNT_USERNAME));
-        settingsSaveUsername(accountUsername());
-    }
-
-    emit isLinkedChanged(true);
-    emit closeBrowser();
-    m_running = false;
+    if (m_response_type == CODE)
+        authorizationReceivedCode(url);
+    else
+        authorizationReceivedToken(url);
 }
 
 bool OAuth::isValidToken()
@@ -114,11 +77,20 @@ void OAuth::getNewAccessToken()
     QUrl postData;
     postData.addQueryItem(OAUTH_CLIENT_ID, clientId().toAscii());
     postData.addQueryItem(OAUTH_CLIENT_SECRET, clientSecret().toAscii());
-    postData.addQueryItem(OAUTH_REFRESH_TOKEN, refreshToken().toAscii());
-    postData.addQueryItem(OAUTH_GRANT_TYPE, OAUTH_REFRESH_TOKEN);
+
+    // If redirect is required and available
+    if (!m_redirect_uri.isEmpty())
+        postData.addQueryItem(OAUTH_REDIRECT_URI, redirectURI().toAscii());
+
+    if (m_response_type == TOKEN) {
+        postData.addQueryItem(OAUTH_REFRESH_TOKEN, refreshToken().toAscii());
+        postData.addQueryItem(OAUTH_GRANT_TYPE, OAUTH_REFRESH_TOKEN);
+    } else {
+        postData.addQueryItem(OAUTH_CODE, code().toAscii());
+        postData.addQueryItem(OAUTH_GRANT_TYPE, OAUTH_AUTHORIZATION_CODE);
+    }
 
     QNetworkReply* ipReply = netManager->post(req, postData.encodedQuery());
-
     bool connectResult;
     Q_UNUSED(connectResult);
     connectResult = connect(netManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNewAccessTokenReply(QNetworkReply*)));
@@ -148,21 +120,112 @@ void OAuth::onNewAccessTokenReply(QNetworkReply* reply)
         return;
     }
     //[OAuth.onNetworkReply] reply "{"access_token":"09e6f53ee377f6xxxx","expires_in":3600,"token_type":"bearer","scope":null,"refresh_token":"c9517d8e0e489c422b745xxxxx","account_id":11140216,"account_username":"xxxx"}"
+
+    // To make sure
+    if (result[OAUTH_ACCESS_TOKEN].toString().isEmpty())
+        return;
+
     setAccessToken(result[OAUTH_ACCESS_TOKEN].toString());
-    setRefreshToken(result[OAUTH_REFRESH_TOKEN].toString());
     setAccountUsername(result[OAUTH_ACCOUNT_USERNAME].toString());
     setExpiresIn(result[OAUTH_EXPIRES_IN].toInt());
+    setIsLinked(true);
 
     settingsSaveAccessToken(accessToken());
     settingsSaveRefreshToken(refreshToken());
     settingsSaveUsername(accountUsername());
     settingsSaveExpiresDateTime(expiresIn());
 
-    m_running = false;
     emit accessTokenRefreshed();
     reply->deleteLater();
 
 }
+
+void OAuth::authorizationReceivedToken(QString url)
+{
+    QUrl tmp(url);
+
+    QUrl mUrl("?" + tmp.fragment()); // all info is in fragment, we have to transform it to be able to read
+
+            // if you sent State, expect it!
+    if (!m_state.isEmpty())
+        if (QString(mUrl.queryItemValue(OAUTH_STATE)) == QString(m_state)) {
+            qDebug() << "[OAuth.onAuthorizationReceived] State did not match! Received: " << mUrl.queryItemValue(OAUTH_STATE);
+            // TODO emit signal with error!
+            return;
+        }
+
+    if (mUrl.queryItemValue(OAUTH_ACCESS_TOKEN).size() == 0) {
+        return;
+    }
+    if (mUrl.queryItemValue(OAUTH_EXPIRES_IN).size() == 0) {
+        return;
+    }
+    if (mUrl.queryItemValue(OAUTH_TOKEN_TYPE).size() == 0) {
+        return;
+    }
+
+    // in some cases refresh token will not be received
+    /*if (mUrl.queryItemValue(OAUTH_REFRESH_TOKEN).size() == 0) {
+     return;
+     }*/
+
+    setAccessToken(mUrl.queryItemValue(OAUTH_ACCESS_TOKEN));
+    setExpiresIn(mUrl.queryItemValue(OAUTH_EXPIRES_IN).toInt());
+    setTokenType(mUrl.queryItemValue(OAUTH_TOKEN_TYPE));
+    setRefreshToken(mUrl.queryItemValue(OAUTH_REFRESH_TOKEN));
+    setCode(mUrl.queryItemValue(OAUTH_CODE));
+    settingsSaveCode(code());
+    settingsSaveAccessToken(accessToken());
+    settingsSaveRefreshToken(refreshToken());
+
+    // Not considered important?
+    if (mUrl.queryItemValue(OAUTH_ACCOUNT_USERNAME).size() > 0) {
+        setAccountUsername(mUrl.queryItemValue(OAUTH_ACCOUNT_USERNAME));
+        settingsSaveUsername(accountUsername());
+    }
+
+    setIsLinked(true);
+
+    emit closeBrowser();
+    m_running = false;
+}
+
+void OAuth::setCode(const QString& value)
+{
+    m_code = value;
+}
+
+QString OAuth::code()
+{
+    return m_code;
+}
+
+void OAuth::authorizationReceivedCode(QString url)
+{
+    QUrl mUrl(url);
+
+    // if you sent State, expect it!
+    if (!m_state.isEmpty())
+        if (QString(mUrl.queryItemValue(OAUTH_STATE)) != QString(m_state)) {
+            qDebug() << "[OAuth.onAuthorizationReceived] State did not match! Received: " << mUrl.queryItemValue(OAUTH_STATE);
+            // TODO emit signal with error!
+            return;
+        }
+
+    if (mUrl.queryItemValue(OAUTH_CODE).size() == 0) {
+        return;
+    }
+
+    setCode(mUrl.queryItemValue(OAUTH_CODE));
+    settingsSaveCode(code());
+
+    m_running = false;
+    getNewAccessToken();
+    setIsLinked(true);
+    emit closeBrowser();
+
+}
+
 /***
  * If you do not immediately require connection on application startup you can call this to refresh
  * token if necessary, to reduce load times in the future
@@ -186,9 +249,11 @@ void OAuth::unlink()
     settingsSaveAccessToken("");
     settingsSaveRefreshToken("");
     settingsSaveUsername("");
+    settingsSaveExpiresDateTime(0);
     loadFromSettings(); // to reload all
-    emit isLinkedChanged(false);
-    emit accountUsernameChanged("");
+
+    setIsLinked(false);
+    setAccountUsername("");
 }
 
 void OAuth::loadFromSettings()
@@ -197,6 +262,8 @@ void OAuth::loadFromSettings()
     setRefreshToken(settingsLoadRefreshToken());
     setAccessToken(settingsLoadAccessToken());
     setAccountUsername(settingsLoadUsername());
+    setIsLinked(refreshToken().length() > 0);
+    setCode(settingsLoadCode());
 }
 
 void OAuth::settingsSaveAccessToken(QString value)
@@ -349,13 +416,23 @@ bool OAuth::isRunning()
 
 bool OAuth::isLinked()
 {
-    return settingsLoadRefreshToken().length() > 0;
+    return m_isLinked;
 }
 
 void OAuth::settingsSaveExpiresDateTime(uint value)
 {
     saveValueFor(QString(OAUTH_SETTINGS_PREFIX) + QString(OAUTH_EXPIRES_DATETIME), QString::number(value));
 
+}
+
+void OAuth::settingsSaveCode(QString value)
+{
+    saveValueFor(QString(OAUTH_SETTINGS_PREFIX) + QString(OAUTH_CODE), value);
+}
+
+QString OAuth::settingsLoadCode()
+{
+    return getValueFor(QString(OAUTH_SETTINGS_PREFIX) + QString(OAUTH_CODE), "");
 }
 
 // standard settings access
@@ -391,3 +468,10 @@ QString OAuth::responseType()
     else
         return "token";
 }
+
+void OAuth::setIsLinked(const bool& linked)
+{
+    m_isLinked = linked;
+    emit isLinkedChanged(linked);
+}
+

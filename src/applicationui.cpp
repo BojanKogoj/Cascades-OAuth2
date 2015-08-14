@@ -16,6 +16,8 @@
 
 #include "applicationui.hpp"
 
+#include "OAuth/WordPress.h"
+
 #include <bb/cascades/Application>
 #include <bb/cascades/QmlDocument>
 #include <bb/cascades/AbstractPane>
@@ -23,7 +25,6 @@
 
 using namespace bb::cascades;
 
-OAuth* ApplicationUI::oauth;
 
 ApplicationUI::ApplicationUI() :
         QObject()
@@ -42,46 +43,16 @@ ApplicationUI::ApplicationUI() :
     // initial load
     onSystemLanguageChanged();
 
-    initOAuth();
-
     // Create scene document from main.qml asset, the parent is set
     // to ensure the document gets destroyed properly at shut down.
     QmlDocument *qml = QmlDocument::create("asset:///main.qml").parent(this);
-    qml->setContextProperty("oauth", ApplicationUI::oauth);
+    qml->setContextProperty("oauth", OAuthx::Instance());
     // Create root object for the UI
     AbstractPane *root = qml->createRootObject<AbstractPane>();
     // Set created root object as the application scene
     Application::instance()->setScene(root);
 }
 
-// WORDPRESS
-void ApplicationUI::initOAuth()
-{
-    // OAuth
-    oauth = new OAuth();
-    // API info
-    oauth->setAuthorizeUrl("https://public-api.wordpress.com/oauth2/authorize");
-    oauth->setRefreshUrl("https://public-api.wordpress.com/oauth2/token");
-    // Client info
-    oauth->setClientId("41987");
-    oauth->setClientSecret("oBdJrdp1YBhBHrrA93jkToxVPZ0jFV5MihIUF7SK4yTCqL5flZnX8EnAhWtnYHqQ");
-    oauth->setRedirectURI("http://darkenergy.si");
-    oauth->setResponseType(ResponseType::CODE);
-}
-
-// IMGUR
-/*void ApplicationUI::initOAuth()
-{
-    // OAuth
-    oauth = new OAuth();
-    // API info
-    oauth->setAuthorizeUrl("https://api.imgur.com/oauth2/authorize");
-    oauth->setRefreshUrl("https://api.imgur.com/oauth2/token");
-    // Client info
-    oauth->setClientId("bfb7676d58afd92");
-    oauth->setClientSecret("92991f3a71908986985a91acd64b1d05b33969dd");
-    oauth->setState("cu7l2w3Y2lxkPIU");
-}*/
 
 void ApplicationUI::onSystemLanguageChanged()
 {

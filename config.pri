@@ -42,13 +42,18 @@ config_pri_assets {
 
 config_pri_source_group1 {
     SOURCES += \
+        $$quote($$BASEDIR/src/OAuth/Imgur.cpp) \
         $$quote($$BASEDIR/src/OAuth/OAuth.cpp) \
+        $$quote($$BASEDIR/src/OAuth/WordPress.cpp) \
         $$quote($$BASEDIR/src/applicationui.cpp) \
         $$quote($$BASEDIR/src/main.cpp)
 
     HEADERS += \
+        $$quote($$BASEDIR/src/OAuth/Imgur.h) \
         $$quote($$BASEDIR/src/OAuth/OAuth.h) \
         $$quote($$BASEDIR/src/OAuth/ResponseType.h) \
+        $$quote($$BASEDIR/src/OAuth/Singleton.h) \
+        $$quote($$BASEDIR/src/OAuth/WordPress.h) \
         $$quote($$BASEDIR/src/applicationui.hpp)
 }
 
