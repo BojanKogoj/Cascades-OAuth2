@@ -16,7 +16,7 @@
 
 #include "applicationui.hpp"
 
-#include "OAuth/WordPress.h"
+#include "OAuth/Rdio.h"
 
 #include <bb/cascades/Application>
 #include <bb/cascades/QmlDocument>
