@@ -3,10 +3,12 @@
 # About
 This is an example of OAuth2 implementation. Not all features are implemented
 
-# Supporeted APIs (you can add your own if you like)
+# Supporeted APIs 
 - Imgur.com 
 - WordPress.com
 - Rdio.com
+
+You can add others if you want. If you do, please do a pull request, and I will add it
 
 # Saved information
 
