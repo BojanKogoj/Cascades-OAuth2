@@ -15,7 +15,6 @@ Slack::Slack()
        // Client info
        setClientId("yourclientid");
        setClientSecret("yourclientsecret");
-       setRedirectURI("http://adev.si/success");
        setResponseType(CODE);
        setState("12345abc");
        setScope("chat:write:bot");
