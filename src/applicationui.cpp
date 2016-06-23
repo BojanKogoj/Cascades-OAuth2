@@ -16,7 +16,7 @@
 
 #include "applicationui.hpp"
 
-#include "OAuth/Rdio.h"
+#include "OAuth/Slack.h"
 
 #include <bb/cascades/Application>
 #include <bb/cascades/QmlDocument>

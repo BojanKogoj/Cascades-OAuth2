@@ -1,3 +1,4 @@
 arm/
 x86/
 config.pri
+.settings/com.rim.tad.tools.qml.core.prefs

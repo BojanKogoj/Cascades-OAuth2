@@ -15,9 +15,9 @@ WordPress::WordPress()
     setRefreshUrl("https://public-api.wordpress.com/oauth2/token");
 
     // Client info
-    setClientId("41987");
-    setClientSecret("oBdJrdp1YBhBHrrA93jkToxVPZ0jFV5MihIUF7SK4yTCqL5flZnX8EnAhWtnYHqQ");
-    setRedirectURI("http://darkenergy.si");
+    setClientId("12345");
+    setClientSecret("clientsecret");
+    setRedirectURI("http://example.com");
     setResponseType(CODE);
 }
 

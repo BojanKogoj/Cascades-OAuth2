@@ -10,6 +10,8 @@ Page {
         }
     }
     Container {
+        horizontalAlignment: HorizontalAlignment.Fill
+        verticalAlignment: VerticalAlignment.Fill
         ScrollView {
             horizontalAlignment: HorizontalAlignment.Fill
             verticalAlignment: VerticalAlignment.Fill
@@ -17,11 +19,11 @@ Page {
                 id: oAuthWebView
                 horizontalAlignment: HorizontalAlignment.Fill
                 verticalAlignment: VerticalAlignment.Fill
-
+                minHeight: 720
                 
                 onUrlChanged: {
                     console.log("[OAuthSheet.onUrlChanged] Url changed to: " + url)
-                    oauth.authorizationReceived(url);
+                    oauth.authorizationReceived(url);                   
                 }
 
             }
