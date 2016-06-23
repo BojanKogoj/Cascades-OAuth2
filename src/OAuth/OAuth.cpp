@@ -32,6 +32,9 @@ void OAuth::link()
     if (!m_state.isEmpty())
         parameters.append(qMakePair(QString(OAUTH_STATE), QString(m_state)));
 
+    if (!m_scope.isEmpty())
+            parameters.append(qMakePair(QString(OAUTH_SCOPE), QString(m_scope)));
+
     if (!redirectURI().isEmpty())
         parameters.append(qMakePair(QString(OAUTH_REDIRECT_URI), QString(m_redirect_uri)));
 
@@ -393,6 +396,16 @@ void OAuth::setExpireDateTime(const uint &value)
 uint OAuth::expireDateTime()
 {
     return m_expire_datetime;
+}
+
+void OAuth::setScope(const QString &value)
+{
+    m_scope = value;
+}
+
+QString OAuth::scope()
+{
+    return m_scope;
 }
 
 QString OAuth::settingsLoadRefreshToken()

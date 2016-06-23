@@ -64,6 +64,8 @@ public:
     void setExpireDateTime(const uint& value);
     void setResponseType(const ResponseType& value);
     QString responseType();
+    void setScope(const QString& value);
+    QString scope();
     void setCode(const QString & value);
     QString code();
     void setIsLinked(const bool& linked);
@@ -86,6 +88,7 @@ protected:
     QString m_refresh_url;
     QString m_state;
     QString m_code;
+    QString m_scope;
     bool m_isLinked;
 
 private:
@@ -137,5 +140,6 @@ const char OAUTH_GRANT_TYPE[] = "grant_type";
 const char OAUTH_AUTHORIZATION_CODE[] = "authorization_code";
 const char OAUTH_REDIRECT_URI[] = "redirect_uri";
 const char OAUTH_CODE[] = "code";
+const char OAUTH_SCOPE[] = "scope";
 
 #endif /* OAUTH_H_ */
